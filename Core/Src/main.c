@@ -283,7 +283,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void Task_action(char message){
+	ITM_SendChar(message);
+	ITM_SendChar('\n');
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -299,8 +302,9 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	Task_action('1');
 	HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-    osDelay(10000);
+    osDelay(500);
   }
   /* USER CODE END 5 */
 }
