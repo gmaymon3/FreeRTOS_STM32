@@ -48,7 +48,7 @@ osThreadId_t Task1Handle;
 const osThreadAttr_t Task1_attributes = {
   .name = "Task1",
   .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal2,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for Task2 */
 osThreadId_t Task2Handle;
@@ -310,16 +310,17 @@ void Task_action(char message){
 void StartTask1(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  osPriority_t priority;
+  //osPriority_t priority;
   /* Infinite loop */
   for(;;)
   {
-	  priority=osThreadGetPriority(Task2Handle);
+	  //=osThreadGetPriority(Task2Handle);
 	  Task_action('1');
+	  osThreadYield();
 	  //HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-	  osThreadSetPriority(Task2Handle,priority+1);
+	  //osThreadSetPriority(Task2Handle,priority+1);
 	  //osDelay(1000);
-	  HAL_Delay(1000);
+	  //HAL_Delay(1000);
   }
   /* USER CODE END 5 */
 }
@@ -334,13 +335,13 @@ void StartTask1(void *argument)
 void StartTask2(void *argument)
 {
   /* USER CODE BEGIN StartTask2 */
-  osPriority_t priority;
+  //osPriority_t priority;
   /* Infinite loop */
   for(;;)
   {
-	  priority=osThreadGetPriority(Task2Handle);
+	  //priority=osThreadGetPriority(Task2Handle);
 	  Task_action('2');
-	  osThreadSetPriority(Task2Handle,priority-2);
+	  //osThreadSetPriority(Task2Handle,priority-2);
   }
   /* USER CODE END StartTask2 */
 }
