@@ -43,20 +43,25 @@
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
 
-/* Definitions for Task1 */
-osThreadId_t Task1Handle;
-const osThreadAttr_t Task1_attributes = {
-  .name = "Task1",
+/* Definitions for Sender1 */
+osThreadId_t Sender1Handle;
+const osThreadAttr_t Sender1_attributes = {
+  .name = "Sender1",
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for Task2 */
-osThreadId_t Task2Handle;
-//const osThreadAttr_t Task2_attributes = {
-//  .name = "Task2",
-//  .stack_size = 256 * 4,
-//  .priority = (osPriority_t) osPriorityNormal,
-//};
+/* Definitions for Receiver */
+osThreadId_t ReceiverHandle;
+const osThreadAttr_t Receiver_attributes = {
+  .name = "Receiver",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for Queue1 */
+osMessageQueueId_t Queue1Handle;
+const osMessageQueueAttr_t Queue1_attributes = {
+  .name = "Queue1"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -65,8 +70,8 @@ osThreadId_t Task2Handle;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
-void StartTask1(void *argument);
-void StartTask2(void *argument);
+void StartSender1(void *argument);
+void StartReceiver(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -126,16 +131,20 @@ int main(void)
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of Queue1 */
+  Queue1Handle = osMessageQueueNew (8, sizeof(uint8_t), &Queue1_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of Task1 */
-  Task1Handle = osThreadNew(StartTask1, NULL, &Task1_attributes);
+  /* creation of Sender1 */
+  Sender1Handle = osThreadNew(StartSender1, NULL, &Sender1_attributes);
 
-  /* creation of Task2 */
-  //Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
+  /* creation of Receiver */
+  ReceiverHandle = osThreadNew(StartReceiver, NULL, &Receiver_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -300,52 +309,48 @@ void Task_action(char message){
 }
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartTask1 */
+/* USER CODE BEGIN Header_StartSender1 */
 /**
-  * @brief  Function implementing the Task1 thread.
+  * @brief  Function implementing the Sender1 thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartTask1 */
-void StartTask1(void *argument)
+/* USER CODE END Header_StartSender1 */
+void StartSender1(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  const osThreadAttr_t Task2_attributes = {
-	  .name = "Task2",
-	  .stack_size = 256 * 4,
-	  .priority = (osPriority_t) osPriorityNormal,
-  };
-
+  uint8_t x=0;
   /* Infinite loop */
   for(;;)
   {
-	  //=osThreadGetPriority(Task2Handle);
-	  Task_action('1');
-	  Task2Handle = osThreadNew(StartTask2,NULL,&Task2_attributes);
-	  osDelay(1000);
+	Task_action('S');
+	osMessageQueuePut(Queue1Handle,&x,0,200);
+	if(++x>9)
+		x = 0;
+    osDelay(1000);
   }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartTask2 */
+/* USER CODE BEGIN Header_StartReceiver */
 /**
-* @brief Function implementing the Task2 thread.
+* @brief Function implementing the Receiver thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask2 */
-void StartTask2(void *argument)
+/* USER CODE END Header_StartReceiver */
+void StartReceiver(void *argument)
 {
-  /* USER CODE BEGIN StartTask2 */
-  //osPriority_t priority;
+  /* USER CODE BEGIN StartReceiver */
+  uint8_t res=0;
   /* Infinite loop */
   for(;;)
   {
-	  Task_action('2');
-	  osThreadTerminate(Task2Handle);
-	  Task_action('x');
+	Task_action('R');
+	osMessageQueueGet(Queue1Handle,&res,NULL,2000);
+	Task_action(res+48);
   }
-  /* USER CODE END StartTask2 */
+  /* USER CODE END StartReceiver */
 }
 
 /**
