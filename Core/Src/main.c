@@ -55,7 +55,7 @@ osThreadId_t ReceiverHandle;
 const osThreadAttr_t Receiver_attributes = {
   .name = "Receiver",
   .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityAboveNormal,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for Sender2 */
 osThreadId_t Sender2Handle;
@@ -70,6 +70,14 @@ const osMessageQueueAttr_t Queue1_attributes = {
   .name = "Queue1"
 };
 /* USER CODE BEGIN PV */
+typedef struct
+{
+	uint16_t Value;
+	uint8_t Source;
+} Data;
+
+Data DataToSend1={'a',1};
+Data DataToSend2={'b',2};
 
 /* USER CODE END PV */
 
@@ -94,6 +102,92 @@ void StartSender2(void *argument);
   * @brief  The application entry point.
   * @retval int
   */
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART2_UART_Init();
+  /* USER CODE BEGIN 2 */
+
+  /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of Queue1 */
+  Queue1Handle = osMessageQueueNew (8, sizeof(Data), &Queue1_attributes);
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of Sender1 */
+  Sender1Handle = osThreadNew(StartSender1, NULL, &Sender1_attributes);
+
+  /* creation of Receiver */
+  ReceiverHandle = osThreadNew(StartReceiver, NULL, &Receiver_attributes);
+
+  /* creation of Sender2 */
+  Sender2Handle = osThreadNew(StartSender2, NULL, &Sender2_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+}
 
 /**
   * @brief System Clock Configuration
@@ -232,108 +326,23 @@ void Task_action(char message){
 	ITM_SendChar(message);
 	ITM_SendChar('\n');
 }
+/* USER CODE END 4 */
 
-int main(void)
-{
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the queue(s) */
-  /* creation of Queue1 */
-  Queue1Handle = osMessageQueueNew (8, sizeof(uint8_t), &Queue1_attributes);
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* creation of Sender1 */
-  Sender1Handle = osThreadNew(StartSender1, NULL, &Sender1_attributes);
-
-  /* creation of Receiver */
-  ReceiverHandle = osThreadNew(StartReceiver, NULL, &Receiver_attributes);
-
-  /* creation of Sender2 */
-  Sender2Handle = osThreadNew(StartSender2, NULL, &Sender2_attributes);
-  if (Sender2Handle == NULL)
-  {
-      Task_action('X');
-  }
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
-}
-
-
+/* USER CODE BEGIN Header_StartSender1 */
+/**
+  * @brief  Function implementing the Sender1 thread.
+  * @param  argument: Not used
+  * @retval None
+  */
 /* USER CODE END Header_StartSender1 */
 void StartSender1(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  uint8_t x=1;
   /* Infinite loop */
   for(;;)
   {
 	Task_action('s');
-	osMessageQueuePut(Queue1Handle,&x,0,200);
+	osMessageQueuePut(Queue1Handle,&DataToSend1,0,200);
     osDelay(2000);
   }
   /* USER CODE END 5 */
@@ -349,15 +358,19 @@ void StartSender1(void *argument)
 void StartReceiver(void *argument)
 {
   /* USER CODE BEGIN StartReceiver */
-  uint8_t res=0;
+  Data retValue;
   /* Infinite loop */
   for(;;)
   {
 	Task_action('R');
-	if (osMessageQueueGet(Queue1Handle,&res,NULL,4000) == osOK){
-		Task_action(res+48);
+	osMessageQueueGet(Queue1Handle,&retValue,NULL,osWaitForever);
+	if(retValue.Source==1){
+		HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_SET);
 	}
-	osDelay(2000);
+	else{
+		HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_RESET);
+	}
+	Task_action(retValue.Value);
   }
   /* USER CODE END StartReceiver */
 }
@@ -372,12 +385,11 @@ void StartReceiver(void *argument)
 void StartSender2(void *argument)
 {
   /* USER CODE BEGIN StartSender2 */
-  uint8_t x=2;
   /* Infinite loop */
   for(;;)
   {
 	Task_action('S');
-	osMessageQueuePut(Queue1Handle,&x,0,200);
+	osMessageQueuePut(Queue1Handle,&DataToSend2,0,200);
 	osDelay(2000);
   }
   /* USER CODE END StartSender2 */
