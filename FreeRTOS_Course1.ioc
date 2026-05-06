@@ -2,10 +2,10 @@
 CAD.formats=
 CAD.pinconfig=
 CAD.provider=
+FREERTOS.BinarySemaphores01=myBinarySem01,Dynamic,NULL,Available
 FREERTOS.FootprintOK=true
-FREERTOS.IPParameters=Tasks01,FootprintOK,configUSE_NEWLIB_REENTRANT,Queues01,configTOTAL_HEAP_SIZE
-FREERTOS.Queues01=Queue1,8,Data,0,Dynamic,NULL,NULL
-FREERTOS.Tasks01=Sender1,24,256,StartSender1,Default,NULL,Dynamic,NULL,NULL;Receiver,24,256,StartReceiver,Default,NULL,Dynamic,NULL,NULL;Sender2,24,256,StartSender2,Default,NULL,Dynamic,NULL,NULL
+FREERTOS.IPParameters=Tasks01,FootprintOK,configUSE_NEWLIB_REENTRANT,configTOTAL_HEAP_SIZE,BinarySemaphores01
+FREERTOS.Tasks01=Task1,24,256,StartTask1,Default,NULL,Dynamic,NULL,NULL;Task2,24,256,StartTask2,Default,NULL,Dynamic,NULL,NULL
 FREERTOS.configTOTAL_HEAP_SIZE=7000
 FREERTOS.configUSE_NEWLIB_REENTRANT=1
 File.Version=6
