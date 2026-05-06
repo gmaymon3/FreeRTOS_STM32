@@ -54,12 +54,25 @@ const osThreadAttr_t Task1_attributes = {
 osThreadId_t Task2Handle;
 const osThreadAttr_t Task2_attributes = {
   .name = "Task2",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for Task3 */
+osThreadId_t Task3Handle;
+const osThreadAttr_t Task3_attributes = {
+  .name = "Task3",
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for myBinarySem01 */
 osSemaphoreId_t myBinarySem01Handle;
 const osSemaphoreAttr_t myBinarySem01_attributes = {
   .name = "myBinarySem01"
+};
+/* Definitions for myCountingSem01 */
+osSemaphoreId_t myCountingSem01Handle;
+const osSemaphoreAttr_t myCountingSem01_attributes = {
+  .name = "myCountingSem01"
 };
 /* USER CODE BEGIN PV */
 typedef struct
@@ -79,6 +92,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartTask1(void *argument);
 void StartTask2(void *argument);
+void StartTask3(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -134,6 +148,9 @@ int main(void)
   /* creation of myBinarySem01 */
   myBinarySem01Handle = osSemaphoreNew(1, 1, &myBinarySem01_attributes);
 
+  /* creation of myCountingSem01 */
+  myCountingSem01Handle = osSemaphoreNew(2, 0, &myCountingSem01_attributes);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -152,6 +169,9 @@ int main(void)
 
   /* creation of Task2 */
   Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
+
+  /* creation of Task3 */
+  Task3Handle = osThreadNew(StartTask3, NULL, &Task3_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -316,7 +336,7 @@ void Task_action(char message){
 }
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	Task_action('!');
-	osSemaphoreRelease(myBinarySem01Handle);
+	osSemaphoreRelease(myCountingSem01Handle);
 }
 /* USER CODE END 4 */
 
@@ -333,9 +353,9 @@ void StartTask1(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osDelay(2000);
+	osSemaphoreRelease(myCountingSem01Handle);
 	Task_action('1');
-	osSemaphoreRelease(myBinarySem01Handle);
+	osDelay(2000);
   }
   /* USER CODE END 5 */
 }
@@ -353,10 +373,31 @@ void StartTask2(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osSemaphoreAcquire(myBinarySem01Handle,4000);
+	osSemaphoreRelease(myCountingSem01Handle);
 	Task_action('2');
+	osDelay(2000);
   }
   /* USER CODE END StartTask2 */
+}
+
+/* USER CODE BEGIN Header_StartTask3 */
+/**
+* @brief Function implementing the Task3 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask3 */
+void StartTask3(void *argument)
+{
+  /* USER CODE BEGIN StartTask3 */
+  /* Infinite loop */
+  for(;;)
+  {
+	osSemaphoreAcquire(myCountingSem01Handle,4000);
+	osSemaphoreAcquire(myCountingSem01Handle,4000);
+	Task_action('3');
+  }
+  /* USER CODE END StartTask3 */
 }
 
 /**
