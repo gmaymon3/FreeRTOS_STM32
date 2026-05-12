@@ -83,7 +83,7 @@ typedef struct
 
 Data DataToSend1={'a',1};
 Data DataToSend2={'b',2};
-
+osEventFlagsId_t EventGroup1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -179,6 +179,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
+  EventGroup1 = osEventFlagsNew(NULL);
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -335,8 +336,8 @@ void Task_action(char message){
 	ITM_SendChar('\n');
 }
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	osEventFlagsSet(EventGroup1,0x50);
 	Task_action('!');
-	osSemaphoreRelease(myCountingSem01Handle);
 }
 /* USER CODE END 4 */
 
@@ -353,9 +354,8 @@ void StartTask1(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osSemaphoreRelease(myCountingSem01Handle);
+	osEventFlagsWait(EventGroup1,0x51,osFlagsWaitAll,osWaitForever);
 	Task_action('1');
-	osDelay(2000);
   }
   /* USER CODE END 5 */
 }
@@ -373,9 +373,9 @@ void StartTask2(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osSemaphoreRelease(myCountingSem01Handle);
+	osEventFlagsSet(EventGroup1,1);
 	Task_action('2');
-	osDelay(2000);
+	osDelay(3000);
   }
   /* USER CODE END StartTask2 */
 }
@@ -393,8 +393,7 @@ void StartTask3(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osSemaphoreAcquire(myCountingSem01Handle,4000);
-	osSemaphoreAcquire(myCountingSem01Handle,4000);
+	osEventFlagsWait(EventGroup1,0x51,osFlagsWaitAll,osWaitForever);
 	Task_action('3');
   }
   /* USER CODE END StartTask3 */
