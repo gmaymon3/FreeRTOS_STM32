@@ -57,13 +57,6 @@ const osThreadAttr_t Task2_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for Task3 */
-osThreadId_t Task3Handle;
-const osThreadAttr_t Task3_attributes = {
-  .name = "Task3",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
 /* Definitions for myBinarySem01 */
 osSemaphoreId_t myBinarySem01Handle;
 const osSemaphoreAttr_t myBinarySem01_attributes = {
@@ -92,7 +85,6 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartTask1(void *argument);
 void StartTask2(void *argument);
-void StartTask3(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -169,9 +161,6 @@ int main(void)
 
   /* creation of Task2 */
   Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
-
-  /* creation of Task3 */
-  Task3Handle = osThreadNew(StartTask3, NULL, &Task3_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -336,7 +325,7 @@ void Task_action(char message){
 	ITM_SendChar('\n');
 }
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	osEventFlagsSet(EventGroup1,0x50);
+	osThreadFlagsSet(Task1Handle,1);
 	Task_action('!');
 }
 /* USER CODE END 4 */
@@ -354,7 +343,7 @@ void StartTask1(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osEventFlagsWait(EventGroup1,0x51,osFlagsWaitAll,osWaitForever);
+	osThreadFlagsWait(0x51,osFlagsWaitAll,osWaitForever);
 	Task_action('1');
   }
   /* USER CODE END 5 */
@@ -373,30 +362,11 @@ void StartTask2(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osEventFlagsSet(EventGroup1,1);
+	osThreadFlagsSet(Task1Handle,0x50);
 	Task_action('2');
 	osDelay(3000);
   }
   /* USER CODE END StartTask2 */
-}
-
-/* USER CODE BEGIN Header_StartTask3 */
-/**
-* @brief Function implementing the Task3 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTask3 */
-void StartTask3(void *argument)
-{
-  /* USER CODE BEGIN StartTask3 */
-  /* Infinite loop */
-  for(;;)
-  {
-	osEventFlagsWait(EventGroup1,0x51,osFlagsWaitAll,osWaitForever);
-	Task_action('3');
-  }
-  /* USER CODE END StartTask3 */
 }
 
 /**
