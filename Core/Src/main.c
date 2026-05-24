@@ -57,6 +57,18 @@ const osThreadAttr_t Task2_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for Task3 */
+osThreadId_t Task3Handle;
+const osThreadAttr_t Task3_attributes = {
+  .name = "Task3",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for myMutex01 */
+osMutexId_t myMutex01Handle;
+const osMutexAttr_t myMutex01_attributes = {
+  .name = "myMutex01"
+};
 /* Definitions for myBinarySem01 */
 osSemaphoreId_t myBinarySem01Handle;
 const osSemaphoreAttr_t myBinarySem01_attributes = {
@@ -85,6 +97,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartTask1(void *argument);
 void StartTask2(void *argument);
+void StartTask3(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -131,6 +144,9 @@ int main(void)
 
   /* Init scheduler */
   osKernelInitialize();
+  /* Create the mutex(es) */
+  /* creation of myMutex01 */
+  myMutex01Handle = osMutexNew(&myMutex01_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -161,6 +177,9 @@ int main(void)
 
   /* creation of Task2 */
   Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
+
+  /* creation of Task3 */
+  Task3Handle = osThreadNew(StartTask3, NULL, &Task3_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -341,10 +360,19 @@ void StartTask1(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
+  uint8_t idx=0;
   for(;;)
   {
-	osThreadFlagsWait(0x51,osFlagsWaitAll,osWaitForever);
+	osMutexAcquire(myMutex01Handle,1000);
 	Task_action('1');
+	if(idx==3)
+	{
+		osThreadSetPriority(Task1Handle,osPriorityLow);
+		//osThreaYield();
+	}
+	idx++;
+	osMutexRelease(myMutex01Handle);
+	HAL_Delay(500);
   }
   /* USER CODE END 5 */
 }
@@ -362,11 +390,31 @@ void StartTask2(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	osThreadFlagsSet(Task1Handle,0x50);
+	osDelay(2000);
+	osMutexAcquire(myMutex01Handle,1000);
 	Task_action('2');
-	osDelay(3000);
+	osMutexRelease(myMutex01Handle);
   }
   /* USER CODE END StartTask2 */
+}
+
+/* USER CODE BEGIN Header_StartTask3 */
+/**
+* @brief Function implementing the Task3 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask3 */
+void StartTask3(void *argument)
+{
+  /* USER CODE BEGIN StartTask3 */
+  /* Infinite loop */
+  for(;;)
+  {
+	 Task_action('3');
+	 HAL_Delay(500);
+  }
+  /* USER CODE END StartTask3 */
 }
 
 /**
