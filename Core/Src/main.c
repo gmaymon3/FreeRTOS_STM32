@@ -50,19 +50,10 @@ const osThreadAttr_t Task1_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for Task2 */
-osThreadId_t Task2Handle;
-const osThreadAttr_t Task2_attributes = {
-  .name = "Task2",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for Task3 */
-osThreadId_t Task3Handle;
-const osThreadAttr_t Task3_attributes = {
-  .name = "Task3",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+/* Definitions for myTimer01 */
+osTimerId_t myTimer01Handle;
+const osTimerAttr_t myTimer01_attributes = {
+  .name = "myTimer01"
 };
 /* Definitions for myMutex01 */
 osMutexId_t myMutex01Handle;
@@ -96,8 +87,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartTask1(void *argument);
-void StartTask2(void *argument);
-void StartTask3(void *argument);
+void Callback01(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -163,6 +153,10 @@ int main(void)
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
+  /* Create the timer(s) */
+  /* creation of myTimer01 */
+  myTimer01Handle = osTimerNew(Callback01, osTimerPeriodic, NULL, &myTimer01_attributes);
+
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
@@ -174,12 +168,6 @@ int main(void)
   /* Create the thread(s) */
   /* creation of Task1 */
   Task1Handle = osThreadNew(StartTask1, NULL, &Task1_attributes);
-
-  /* creation of Task2 */
-  Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
-
-  /* creation of Task3 */
-  Task3Handle = osThreadNew(StartTask3, NULL, &Task3_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -360,61 +348,22 @@ void StartTask1(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
-  uint8_t idx=0;
+  osTimerStart(myTimer01Handle,1000);
   for(;;)
   {
-	osMutexAcquire(myMutex01Handle,1000);
+	osDelay(2000);
 	Task_action('1');
-	if(idx==3)
-	{
-		osThreadSetPriority(Task1Handle,osPriorityLow);
-		//osThreaYield();
-	}
-	idx++;
-	osMutexRelease(myMutex01Handle);
-	HAL_Delay(500);
   }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartTask2 */
-/**
-* @brief Function implementing the Task2 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTask2 */
-void StartTask2(void *argument)
-{
-  /* USER CODE BEGIN StartTask2 */
-  /* Infinite loop */
-  for(;;)
-  {
-	osDelay(2000);
-	osMutexAcquire(myMutex01Handle,1000);
-	Task_action('2');
-	osMutexRelease(myMutex01Handle);
-  }
-  /* USER CODE END StartTask2 */
-}
 
-/* USER CODE BEGIN Header_StartTask3 */
-/**
-* @brief Function implementing the Task3 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTask3 */
-void StartTask3(void *argument)
+/* Callback01 function */
+void Callback01(void *argument)
 {
-  /* USER CODE BEGIN StartTask3 */
-  /* Infinite loop */
-  for(;;)
-  {
-	 Task_action('3');
-	 HAL_Delay(500);
-  }
-  /* USER CODE END StartTask3 */
+  /* USER CODE BEGIN Callback01 */
+  Task_action('c');
+  /* USER CODE END Callback01 */
 }
 
 /**
